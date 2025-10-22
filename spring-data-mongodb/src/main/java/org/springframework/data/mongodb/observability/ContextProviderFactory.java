@@ -44,7 +44,9 @@ import com.mongodb.reactivestreams.client.ReactiveContextProvider;
  *
  * @author Mark Paluch
  * @since 3.0
+ * @deprecated since 5.1 in favor of native MongoDB Java Driver observability support.
  */
+@Deprecated(since = "5.1",  forRemoval = true)
 public class ContextProviderFactory {
 
 	private static final boolean SYNCHRONOUS_PRESENT = ClassUtils

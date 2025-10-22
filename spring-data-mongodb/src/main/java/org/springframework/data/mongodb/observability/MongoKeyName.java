@@ -32,7 +32,9 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @since 4.4.9
+ * @deprecated since 5.1 in favor of native MongoDB Java Driver observability support.
  */
+@Deprecated(since = "5.1",  forRemoval = true)
 record MongoKeyName<C>(String name, boolean required, Function<C, @Nullable Object> valueFunction) implements KeyName {
 
 	/**

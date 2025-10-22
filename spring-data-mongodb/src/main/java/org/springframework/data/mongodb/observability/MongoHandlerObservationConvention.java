@@ -27,7 +27,9 @@ import io.micrometer.observation.ObservationConvention;
  * 
  * @author Greg Turnquist
  * @since 4
+ * @deprecated since 5.1 in favor of native MongoDB Java Driver observability support.
  */
+@Deprecated(since = "5.1",  forRemoval = true)
 public interface MongoHandlerObservationConvention extends ObservationConvention<MongoHandlerContext> {
 
 	@Override
