@@ -65,7 +65,7 @@ import com.mongodb.Function;
 @SuppressWarnings("ConstantConditions")
 abstract class GeoConverters {
 
-	private final static Map<String, Function<Document, GeoJson<?>>> converters;
+	private final static Map<String, Function<Document, @Nullable GeoJson<?>>> converters;
 
 	static {
 
@@ -127,15 +127,15 @@ abstract class GeoConverters {
 	 * @since 1.5
 	 */
 	@ReadingConverter
-	enum DocumentToPointConverter implements Converter<Document, Point> {
+	enum DocumentToPointConverter implements Converter<Document, @Nullable Point> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Point convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public Point convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -160,9 +160,8 @@ abstract class GeoConverters {
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable Point source) {
-			return source == null ? null : new Document("x", source.getX()).append("y", source.getY());
+		public Document convert(Point source) {
+			return new Document("x", source.getX()).append("y", source.getY());
 		}
 	}
 
@@ -178,12 +177,7 @@ abstract class GeoConverters {
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable Box source) {
-
-			if (source == null) {
-				return null;
-			}
+		public Document convert(Box source) {
 
 			Document result = new Document();
 			result.put("first", PointToDocumentConverter.INSTANCE.convert(source.getFirst()));
@@ -199,21 +193,25 @@ abstract class GeoConverters {
 	 * @since 1.5
 	 */
 	@ReadingConverter
-	enum DocumentToBoxConverter implements Converter<Document, Box> {
+	enum DocumentToBoxConverter implements Converter<Document, @Nullable Box> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
 		@SuppressWarnings("NullAway")
-		public @Nullable Box convert(@Nullable Document source) {
+		public Box convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
-			Point first = DocumentToPointConverter.INSTANCE.convert((Document) source.get("first"));
-			Point second = DocumentToPointConverter.INSTANCE.convert((Document) source.get("second"));
+			Document firstDoc = (Document) source.get("first");
+			Document secondDoc = (Document) source.get("second");
+
+			Assert.notNull(firstDoc, "first must not be null");
+			Assert.notNull(secondDoc, "second must not be null");
+			Point first = DocumentToPointConverter.INSTANCE.convert(firstDoc);
+			Point second = DocumentToPointConverter.INSTANCE.convert(secondDoc);
 
 			return new Box(first, second);
 		}
@@ -230,12 +228,7 @@ abstract class GeoConverters {
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable Circle source) {
-
-			if (source == null) {
-				return null;
-			}
+		public Document convert(Circle source) {
 
 			Document result = new Document();
 			result.put("center", PointToDocumentConverter.INSTANCE.convert(source.getCenter()));
@@ -252,15 +245,15 @@ abstract class GeoConverters {
 	 * @since 1.5
 	 */
 	@ReadingConverter
-	enum DocumentToCircleConverter implements Converter<Document, Circle> {
+	enum DocumentToCircleConverter implements Converter<Document, @Nullable Circle> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Circle convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public Circle convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -295,12 +288,7 @@ abstract class GeoConverters {
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable Sphere source) {
-
-			if (source == null) {
-				return null;
-			}
+		public Document convert(Sphere source) {
 
 			Document result = new Document();
 			result.put("center", PointToDocumentConverter.INSTANCE.convert(source.getCenter()));
@@ -317,15 +305,15 @@ abstract class GeoConverters {
 	 * @since 1.5
 	 */
 	@ReadingConverter
-	enum DocumentToSphereConverter implements Converter<Document, Sphere> {
+	enum DocumentToSphereConverter implements Converter<Document, @Nullable Sphere> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Sphere convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public Sphere convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -360,12 +348,7 @@ abstract class GeoConverters {
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable Polygon source) {
-
-			if (source == null) {
-				return null;
-			}
+		public Document convert(Polygon source) {
 
 			List<Point> points = source.getPoints();
 			List<Document> pointTuples = new ArrayList<>(points.size());
@@ -387,16 +370,15 @@ abstract class GeoConverters {
 	 * @since 1.5
 	 */
 	@ReadingConverter
-	enum DocumentToPolygonConverter implements Converter<Document, Polygon> {
+	enum DocumentToPolygonConverter implements Converter<Document, @Nullable Polygon> {
 
 		INSTANCE;
 
 		@Override
-		@SuppressWarnings({ "unchecked" })
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Polygon convert(@Nullable Document source) {
+		@SuppressWarnings({ "unchecked", "NullAway" })
+		public Polygon convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -426,12 +408,7 @@ abstract class GeoConverters {
 
 		@Override
 		@SuppressWarnings("rawtypes")
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable GeoCommand source) {
-
-			if (source == null) {
-				return null;
-			}
+		public Document convert(GeoCommand source) {
 
 			List<Object> argument = new ArrayList<>(2);
 
@@ -478,12 +455,7 @@ abstract class GeoConverters {
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable Document convert(@Nullable GeoJson<?> source) {
-
-			if (source == null) {
-				return null;
-			}
+		public Document convert(GeoJson<?> source) {
 
 			Document dbo = new Document("type", source.getType());
 
@@ -561,16 +533,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonPointConverter implements Converter<Document, GeoJsonPoint> {
+	enum DocumentToGeoJsonPointConverter implements Converter<Document, @Nullable GeoJsonPoint> {
 
 		INSTANCE;
 
 		@Override
-		@SuppressWarnings("unchecked")
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonPoint convert(@Nullable Document source) {
+		@SuppressWarnings({"unchecked", "NullAway"})
+		public GeoJsonPoint convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -589,15 +560,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonPolygonConverter implements Converter<Document, GeoJsonPolygon> {
+	enum DocumentToGeoJsonPolygonConverter implements Converter<Document, @Nullable GeoJsonPolygon> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonPolygon convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public GeoJsonPolygon convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -612,15 +583,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonMultiPolygonConverter implements Converter<Document, GeoJsonMultiPolygon> {
+	enum DocumentToGeoJsonMultiPolygonConverter implements Converter<Document, @Nullable GeoJsonMultiPolygon> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonMultiPolygon convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public GeoJsonMultiPolygon convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -643,15 +614,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonLineStringConverter implements Converter<Document, GeoJsonLineString> {
+	enum DocumentToGeoJsonLineStringConverter implements Converter<Document, @Nullable GeoJsonLineString> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonLineString convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public GeoJsonLineString convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -668,15 +639,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonMultiPointConverter implements Converter<Document, GeoJsonMultiPoint> {
+	enum DocumentToGeoJsonMultiPointConverter implements Converter<Document, @Nullable GeoJsonMultiPoint> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonMultiPoint convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public GeoJsonMultiPoint convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -693,15 +664,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonMultiLineStringConverter implements Converter<Document, GeoJsonMultiLineString> {
+	enum DocumentToGeoJsonMultiLineStringConverter implements Converter<Document, @Nullable GeoJsonMultiLineString> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonMultiLineString convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public GeoJsonMultiLineString convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -725,15 +696,15 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	enum DocumentToGeoJsonGeometryCollectionConverter implements Converter<Document, GeoJsonGeometryCollection> {
+	enum DocumentToGeoJsonGeometryCollectionConverter implements Converter<Document, @Nullable GeoJsonGeometryCollection> {
 
 		INSTANCE;
 
 		@Override
-		@Contract("null -> null; !null -> !null")
-		public @Nullable GeoJsonGeometryCollection convert(@Nullable Document source) {
+		@SuppressWarnings("NullAway")
+		public GeoJsonGeometryCollection convert(Document source) {
 
-			if (source == null) {
+			if(ObjectUtils.isEmpty(source)) {
 				return null;
 			}
 
@@ -808,11 +779,17 @@ abstract class GeoConverters {
 	 * @author Christoph Strobl
 	 */
 	@ReadingConverter
-	enum DocumentToGeoJsonConverter implements Converter<Document, GeoJson<?>> {
+	enum DocumentToGeoJsonConverter implements Converter<Document, @Nullable GeoJson<?>> {
 		INSTANCE;
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public GeoJson<?> convert(Document source) {
+
+			if(ObjectUtils.isEmpty(source)) {
+				return null;
+			}
+
 			return toGenericGeoJson(source);
 		}
 	}
